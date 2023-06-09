@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Calendario dipendenti</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+      @media print {
+        body {
+          width: 297mm;
+          height: 210mm;
+          margin: 0;
+        }
+
+        table {
+          font-size: 12px;
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        th,
+        td {
+          border: 1px solid black;
+          padding: 5px;
+        }
+
+        th {
+          background-color: #f2f2f2;
+        }
+
+        .holiday {
+          background-color: #ffe6e6;
+        }
+
+        .input-cell {
+          width: 30px;
+          text-align: center;
+        }
+
+        .button {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <h1>Calendario dipendenti</h1>
+      <form>
+        <label for="month">Mese:</label>
+        <select id="month">
+          <option value="1">Gennaio</option>
+          <option value="2">Febbraio</option>
+          <option value="3">Marzo</option>
+          <option value="4">Aprile</option>
+          <option value="5">Maggio</option>
+          <option value="6">Giugno</option>
+          <option value="7">Luglio</option>
+          <option value="8">Agosto</option>
+          <option value="9">Settembre</option>
+          <option value="10">Ottobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Dicembre</option>
+        </select>
+        <label for="year">Anno:</label>
+        <input type="number" id="year" value="2021">
+        <button type="button" onclick="generateTable()">Genera calendario</button>
+      </form>
+      <div id="table-container"></div>
+      <div id="report-container"></div>
+      <button class="button" id="print-button" type="button" onclick="printTable()">Stampa</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+      const ITALIAN_HOLIDAYS = {
+        "01-01": "Capodanno",
+        "06-01": "Epifania",
+        "25-04": "Festa della Liberazione",
+        "01-05": "Festa del Lavoro",
+        "02-06": "Festa della Repubblica",
+        "15-08": "Ferragosto",
+        "01-11": "Ognissanti",
+        "08-12": "Immacolata Concezione",
+        "25-12": "Natale",
+        "26-12": "Santo Stefano"
+      };
+
+      const CODES = {
+        F: 'Ferie',
+        L: 'Lutto',
+        M: 'Malattia',
+        P: 'Permesso',
+        PNR: 'Permesso non retribuito',
+        AS: 'Assente',
+        '104': 'Permesso 104 | INPS',
+        FS: 'Festività',
+      };
+
+      const employees = [
+        "Martinica Irina Laura",
+        "Giuseppina Marbieri",
+        "Carmela Bucceri",
+        "Chiara Landi",
+        "Anna Tota",
+        "Maria L'abbate",
+        "Germano Michele D'apolito"
+      ];
+
+      function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        return `${day}-${month}`;
+      }
+
+      function isHoliday(date) {
+        const formattedDate = formatDate(date);
+        return formattedDate in ITALIAN_HOLIDAYS;
+      }
+
+      let codeData = {};
+      let hoursData = {};
+
+      function generateTable() {
+        const monthSelect = document.getElementById("month");
+        const monthIndex = parseInt(monthSelect.value) - 1;
+        const monthName = monthSelect.options[monthIndex].text;
+        const yearInput = document.getElementById("year");
+        const year = parseInt(yearInput.value);
+
+        const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+        const daysOfWeek = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
+
+        let tableHtml = "<table><thead><tr><th rowspan='2'>Nome dipendente</th>";
+        for (let i = 1; i <= daysInMonth; i++) {
+          tableHtml += `<th>${i}</th>`;
+        }
+        tableHtml += "</tr><tr>";
+        for (let i = 1; i <= daysInMonth; i++) {
+          const date = new Date(year, monthIndex, i);
+          const dayOfWeek = date.getDay();
+          tableHtml += `<td>${daysOfWeek[dayOfWeek]}</td>`;
+        }
+        tableHtml += "</tr></thead><tbody>";
+
+        for (let i = 0; i < employees.length; i++) {
+          const employee = employees[i];
+          tableHtml += "<tr>";
+          tableHtml += `<td>${employee}</td>`;
+          for (let j = 1; j <= daysInMonth; j++) {
+            const date = new Date(year, monthIndex, j);
+            const dayOfWeek = date.getDay();
+            const isHolidayDay = isHoliday(date);
+            const cellClass = (dayOfWeek === 0 || isHolidayDay) ? "holiday" : "";
+            const inputId = `input-${i}-${j}`;
+            tableHtml += `<td class="${cellClass}"><input type="text" id="${inputId}" class="input-cell" /></td>`;
+
+            $(`#${inputId}`).on('change', (event) => {
+              const inputId = event.target.id;
+              const [userIndex, dayIndex] = inputId.split('-').slice(1).map((str) => parseInt(str));
+              const value = event.target.value.trim().toUpperCase();
+
+              if (value !== '' && CODES[value]) {
+                if (codeData[value]) {
+                  codeData[value].count++;
+                } else {
+                  codeData[value] = {
+                    count: 1,
+                    label: CODES[value],
+                  };
+                }
+              }
+
+              if (value !== '') {
+                if (hoursData[employee]) {
+                  hoursData[employee] += 1;
+                } else {
+                  hoursData[employee] = 1;
+                }
+              }
+            });
+          }
+          tableHtml += "</tr>";
+        }
+        tableHtml += "</tbody></table>";
+
+        const tableContainer = document.getElementById("table-container");
+        tableContainer.innerHTML = tableHtml;
+
+        const reportContainer = document.getElementById("report-container");
+        reportContainer.innerHTML = "";
+
+        const printButton = document.getElementById("print-button");
+        printButton.style.display = "block";
+      }
+
+      function printTable() {
+        window.print();
+      }
+    </script>
+  </body>
+</html>
