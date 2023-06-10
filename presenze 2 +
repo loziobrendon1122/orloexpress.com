@@ -6,41 +6,73 @@
     <link rel="stylesheet" href="style.css">
     <style>
       @media print {
-        body {
-          width: 297mm;
-          height: 210mm;
-          margin: 0;
-        }
-
-        table {
-          font-size: 12px;
-          border-collapse: collapse;
-          width: 100%;
-        }
-
-        th,
-        td {
-          border: 1px solid black;
-          padding: 5px;
-        }
-
-        th {
-          background-color: #f2f2f2;
-        }
-
-        .holiday {
-          background-color: #ffe6e6;
-        }
-
-        .input-cell {
-          width: 30px;
-          text-align: center;
-        }
-
-        .button {
-          display: none;
-        }
+        /* Stili di stampa */
       }
+      body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+#container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+label {
+  font-weight: bold;
+}
+
+select,
+input[type="number"] {
+  margin-right: 10px;
+}
+
+button {
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+table {
+  font-size: 14px;
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+th,
+td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.holiday {
+  background-color: #ffe6e6;
+}
+
+.input-cell {
+  width: 30px;
+  text-align: center;
+}
+
+.button {
+  display: none;
+}
     </style>
   </head>
   <body>
@@ -108,6 +140,9 @@
         "Germano Michele D'apolito"
       ];
 
+      let codeData = {};
+      let hoursData = {};
+
       function formatDate(date) {
         const day = String(date.getDate()).padStart(2, "0");
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -119,8 +154,8 @@
         return formattedDate in ITALIAN_HOLIDAYS;
       }
 
-      let codeData = {};
-      let hoursData = {};
+      let totalHours = {};
+      let workingDays = {};
 
       function generateTable() {
         const monthSelect = document.getElementById("month");
@@ -137,7 +172,7 @@
         for (let i = 1; i <= daysInMonth; i++) {
           tableHtml += `<th>${i}</th>`;
         }
-        tableHtml += "</tr><tr>";
+        tableHtml += "<th>Totale ore</th><th>Giorni lavorati</th></tr><tr>";
         for (let i = 1; i <= daysInMonth; i++) {
           const date = new Date(year, monthIndex, i);
           const dayOfWeek = date.getDay();
@@ -155,45 +190,48 @@
             const isHolidayDay = isHoliday(date);
             const cellClass = (dayOfWeek === 0 || isHolidayDay) ? "holiday" : "";
             const inputId = `input-${i}-${j}`;
-            tableHtml += `<td class="${cellClass}"><input type="text" id="${inputId}" class="input-cell" /></td>`;
-
-            $(`#${inputId}`).on('change', (event) => {
-              const inputId = event.target.id;
-              const [userIndex, dayIndex] = inputId.split('-').slice(1).map((str) => parseInt(str));
-              const value = event.target.value.trim().toUpperCase();
-
-              if (value !== '' && CODES[value]) {
-                if (codeData[value]) {
-                  codeData[value].count++;
-                } else {
-                  codeData[value] = {
-                    count: 1,
-                    label: CODES[value],
-                  };
-                }
-              }
-
-              if (value !== '') {
-                if (hoursData[employee]) {
-                  hoursData[employee] += 1;
-                } else {
-                  hoursData[employee] = 1;
-                }
-              }
-            });
+            tableHtml += `<td class="${cellClass}"><input type="text" id="${inputId}" class="input-cell" onblur="updateHours(${i}, ${j}, this.value)" /></td>`;
           }
+          tableHtml += `<td id='totalHours-${i}'></td><td id='workingDays-${i}'></td>`;
           tableHtml += "</tr>";
+          hoursData[i] = {};
+          totalHours[i] = 0;
+          workingDays[i] = 0;
         }
         tableHtml += "</tbody></table>";
 
-        const tableContainer = document.getElementById("table-container");
-        tableContainer.innerHTML = tableHtml;
+        document.getElementById("table-container").innerHTML = tableHtml;
+        document.getElementById("report-container").innerHTML = "";
+        document.getElementById("print-button").style.display = "block";
+      }
 
+      function updateHours(employeeIndex, day, hours) {
+        hoursData[employeeIndex][day] = parseFloat(hours) || 0;
+
+        const totalHoursElement = document.getElementById("totalHours-" + employeeIndex);
+        totalHours[employeeIndex] = 0;
+        for (let day in hoursData[employeeIndex]) {
+          totalHours[employeeIndex] += hoursData[employeeIndex][day];
+        }
+        totalHoursElement.textContent = totalHours[employeeIndex].toFixed(2);
+
+        const workingDaysElement = document.getElementById("workingDays-" + employeeIndex);
+        workingDays[employeeIndex] = Object.keys(hoursData[employeeIndex]).length;
+        workingDaysElement.textContent = workingDays[employeeIndex];
+
+        generateReport();
+      }
+
+      function generateReport() {
         const reportContainer = document.getElementById("report-container");
-        reportContainer.innerHTML = "";
-
-        const printButton = document.getElementById("print-button");
-        printButton.style.display = "block";
+        let reportHtml = "<h2>Report ore lavorate</h2>";
+        reportHtml += "<table><thead><tr><th>Nome dipendente</th><th>Totale ore</th><th>Giorni lavorati</th></tr></thead><tbody>";
+        for (let i = 0; i < employees.length; i++) {
+          const employee = employees[i];
+          reportHtml += `<tr><td>${employee}</td><td>${totalHours[i].toFixed(2)}</td><td>${workingDays[i]}</td></tr>`;
+        }
+        reportHtml += "</tbody></table>";
+        reportContainer.innerHTML = reportHtml;
       }
 
       function printTable() {
