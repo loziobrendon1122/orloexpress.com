@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Calendario dipendenti</title>
+  <style>
+    @media print {
+      .holiday {
+        background-color: red !important;
+      }
+
+      #report-container {
+        font-size: 12px;
+      }
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    #container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    select,
+    input[type="number"] {
+      margin-right: 8px;
+    }
+
+    button {
+      padding: 5px 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    table {
+      font-size: 14px;
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .holiday {
+      background-color: #ffe6e6;
+    }
+
+    .input-cell {
+      width: 30px;
+      text-align: center;
+    }
+
+    #report-container {
+      font-size: 12px;
+    }
+
+    #report-container table {
+      margin: 0;
+    }
+
+    #report-container th {
+      width: 10px;
+    }
+
+    #report-container td {
+      width: 10px;
+    }
+
+    #notes-container {
+      display: none;
+    }
+
+    #notes-container h2 {
+      margin-top: 20px;
+    }
+
+    #notes-textarea {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .popup-container {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .popup-content {
+      background-color: #fff;
+      margin: 100px auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+    }
+
+    .popup-close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .popup-close:hover,
+    .popup-close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .justification-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    .justification-item {
+      margin-bottom: 10px;
+    }
+
+    .justification-item label {
+      display: inline-block;
+      width: 80px;
+    }
+
+    .justification-item input {
+      margin-right: 10px.
+
+    #notes-container {
+      display: none;
+    }
+
+    #notes-container h2 {
+      margin-top: 20px;
+    }
+
+    #notes-textarea {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>Calendario dipendenti</h1>
+    <form>
+      <label for="month">Mese:</label>
+      <select id="month">
+        <option value="1">Gennaio</option>
+        <option value="2">Febbraio</option>
+        <option value="3">Marzo</option>
+        <option value="4">Aprile</option>
+        <option value="5">Maggio</option>
+        <option value="6">Giugno</option>
+        <option value="7">Luglio</option>
+        <option value="8">Agosto</option>
+        <option value="9">Settembre</option>
+        <option value="10">Ottobre</option>
+        <option value="11">Novembre</option>
+        <option value="12">Dicembre</option>
+      </select>
+      <label for="year">Anno:</label>
+      <input type="number" id="year" value="2021">
+      <button type="button" onclick="generateTable()">Genera calendario</button>
+    </form>
+    <div id="buttons-container">
+      <button class="button" id="print-button" type="button" onclick="printTable()">Stampa</button>
+      <button class="button" id="notes-button" type="button" onclick="showNotes()">Note</button>
+    </div>
+    <form>
+      <!-- Form content here -->
+    </form>
+    <div id="table-container"></div>
+    <div id="report-container"></div>
+    <div id="notes-container">
+      <h2>Note</h2>
+      <textarea id="notes-textarea" rows="4" cols="50"></textarea>
+      <button class="button" type="button" onclick="saveNotes()">Salva note</button>
+    </div>
+    <script>
+  const ITALIAN_HOLIDAYS = {
+    "01-01": "Capodanno",
+    "06-01": "Epifania",
+    "25-04": "Festa della Liberazione",
+    "01-05": "Festa del Lavoro",
+    "02-06": "Festa della Repubblica",
+    "15-08": "Ferragosto",
+    "01-11": "Ognissanti",
+    "08-12": "Immacolata Concezione",
+    "25-12": "Natale",
+    "26-12": "Santo Stefano"
+  };
+
+  const employees = [
+    "Martinica Irina Laura",
+    "Giuseppina Marbieri",
+    "Carmela Bucceri",
+    "Chiara Landi",
+    "Anna Tota",
+    "Maria L'abbate",
+    "Germano Michele D'apolito"
+  ];
+
+  let hoursData = {};
+
+  function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${day}-${month}`;
+  }
+
+  function isHoliday(date) {
+    const formattedDate = formatDate(date);
+    return formattedDate in ITALIAN_HOLIDAYS;
+  }
+
+  let totalHours = {};
+
+  function generateTable() {
+    const monthSelect = document.getElementById("month");
+    const monthIndex = parseInt(monthSelect.value) - 1;
+    const monthName = monthSelect.options[monthIndex].text;
+    const yearInput = document.getElementById("year");
+    const year = parseInt(yearInput.value);
+
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+
+    const daysOfWeek = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
+
+    let tableHtml = "<table><thead><tr><th rowspan='2'>Nome dipendente</th>";
+    for (let i = 1; i <= daysInMonth; i++) {
+      tableHtml += `<th>${i}</th>`;
+    }
+    tableHtml += "<th>Totale ore</th></tr><tr>";
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(year, monthIndex, i);
+      const dayOfWeek = date.getDay();
+      tableHtml += `<td>${daysOfWeek[dayOfWeek]}</td>`;
+    }
+    tableHtml += "</tr></thead><tbody>";
+
+    for (let i = 0; i < employees.length; i++) {
+      const employee = employees[i];
+      tableHtml += "<tr>";
+      tableHtml += `<td>${employee}</td>`;
+      for (let j = 1; j <= daysInMonth; j++) {
+        const date = new Date(year, monthIndex, j);
+        const dayOfWeek = date.getDay();
+        const isHolidayDay = isHoliday(date);
+        const cellClass = (dayOfWeek === 0 || isHolidayDay) ? "holiday" : "";
+        const cellId = `${i}-${j}`;
+        tableHtml += `<td class="${cellClass}"><input class="input-cell" type="number" id="${cellId}" min="0"></td>`;
+      }
+      tableHtml += `<td id="total-${i}">0</td>`;
+      tableHtml += "</tr>";
+    }
+
+    tableHtml += "</tbody></table>";
+
+    const tableContainer = document.getElementById("table-container");
+    tableContainer.innerHTML = tableHtml;
+
+    totalHours = {};
+
+    for (let i = 0; i < employees.length; i++) {
+      totalHours[i] = 0;
+      for (let j = 1; j <= daysInMonth; j++) {
+        const cellId = `${i}-${j}`;
+        const cellInput = document.getElementById(cellId);
+        cellInput.addEventListener("change", updateTotalHours);
+      }
+    }
+
+    const justificationButton = document.createElement("button");
+    justificationButton.textContent = "GIUSTIFICAZIONE";
+    justificationButton.addEventListener("click", showJustificationDialog);
+    tableContainer.appendChild(justificationButton);
+  }
+
+  function updateTotalHours(event) {
+    const cellInput = event.target;
+    const value = parseInt(cellInput.value);
+    const cellIdParts = cellInput.id.split("-");
+    const employeeIndex = parseInt(cellIdParts[0]);
+    const dayOfMonth = parseInt(cellIdParts[1]);
+
+    totalHours[employeeIndex] -= hoursData[employeeIndex]?.[dayOfMonth] || 0;
+    totalHours[employeeIndex] += value;
+
+    hoursData[employeeIndex] = hoursData[employeeIndex] || {};
+    hoursData[employeeIndex][dayOfMonth] = value;
+
+    const totalCell = document.getElementById(`total-${employeeIndex}`);
+    totalCell.textContent = totalHours[employeeIndex];
+  }
+
+  function showJustificationDialog() {
+    const justificationTypes = [
+      "FERIE",
+      "PERMESSO",
+      "INPS",
+      "FESTIVITA'",
+      "104",
+      "LUTTO",
+      "MALATTIA"
+    ];
+
+    const dialogContainer = document.createElement("div");
+    dialogContainer.id = "justification-dialog";
+    dialogContainer.style.position = "fixed";
+    dialogContainer.style.top = "0";
+    dialogContainer.style.left = "0";
+    dialogContainer.style.width = "100%";
+    dialogContainer.style.height = "100%";
+    dialogContainer.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    dialogContainer.style.display = "flex";
+    dialogContainer.style.justifyContent = "center";
+    dialogContainer.style.alignItems = "center";
+
+    const dialogBox = document.createElement("div");
+    dialogBox.style.backgroundColor = "#fff";
+    dialogBox.style.padding = "20px";
+    dialogBox.style.borderRadius = "8px";
+
+    const closeButton = document.createElement("button");
+    closeButton.textContent = "Chiudi";
+    closeButton.addEventListener("click", closeJustificationDialog);
+    dialogBox.appendChild(closeButton);
+
+    const justificationList = document.createElement("ul");
+    justificationList.style.listStyle = "none";
+    justificationList.style.padding = "0";
+    justificationList.style.marginTop = "20px";
+
+    for (let i = 0; i < justificationTypes.length; i++) {
+      const justificationType = justificationTypes[i];
+
+      const listItem = document.createElement("li");
+
+      const typeLabel = document.createElement("label");
+      typeLabel.textContent = justificationType;
+      listItem.appendChild(typeLabel);
+
+      const startDateInput = document.createElement("input");
+      startDateInput.type = "date";
+      listItem.appendChild(startDateInput);
+
+      const endDateInput = document.createElement("input");
+      endDateInput.type = "date";
+      listItem.appendChild(endDateInput);
+
+      const employeeSelect = document.createElement("select");
+      for (let j = 0; j < employees.length; j++) {
+        const employeeOption = document.createElement("option");
+        employeeOption.value = j;
+        employeeOption.textContent = employees[j];
+        employeeSelect.appendChild(employeeOption);
+      }
+      listItem.appendChild(employeeSelect);
+
+      const addButton = document.createElement("button");
+      addButton.textContent = "Aggiungi";
+      addButton.addEventListener("click", addJustification);
+      listItem.appendChild(addButton);
+
+      justificationList.appendChild(listItem);
+    }
+
+    dialogBox.appendChild(justificationList);
+    dialogContainer.appendChild(dialogBox);
+
+    document.body.appendChild(dialogContainer);
+  }
+
+  function closeJustificationDialog() {
+    const dialogContainer = document.getElementById("justification-dialog");
+    dialogContainer.parentNode.removeChild(dialogContainer);
+  }
+
+  function addJustification(event) {
+    const addButton = event.target;
+    const listItem = addButton.parentNode;
+
+    const typeLabel = listItem.querySelector("label");
+    const startDateInput = listItem.querySelector("input[type='date']");
+    const endDateInput = startDateInput.nextElementSibling;
+    const employeeSelect = listItem.querySelector("select");
+
+    const type = typeLabel.textContent;
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    const employeeIndex = parseInt(employeeSelect.value);
+
+    const reportContainer = document.getElementById("report-container");
+    reportContainer.innerHTML += `<p>${type}: ${startDate} - ${endDate} (${employees[employeeIndex]})</p>`;
+
+    closeJustificationDialog();
+  }
+
+  function printTable() {
+    const tableContainer = document.getElementById("table-container");
+    const printButton = document.getElementById("print-button");
+    const notesButton = document.getElementById("notes-button");
+    const buttonsContainer = document.getElementById("buttons-container");
+    const reportContainer = document.getElementById("report-container");
+    const notesContainer = document.getElementById("notes-container");
+
+    printButton.style.display = "none";
+    notesButton.style.display = "none";
+    buttonsContainer.style.display = "none";
+    reportContainer.style.display = "none";
+    notesContainer.style.display = "none";
+
+    document.body.style.margin = "0";
+
+    window.print();
+
+    printButton.style.display = "block";
+    notesButton.style.display = "block";
+    buttonsContainer.style.display = "flex";
+    reportContainer.style.display = "block";
+    notesContainer.style.display = "block";
+
+    document.body.style.margin = "20px";
+  }
+
+  function showNotes() {
+    const notesContainer = document.getElementById("notes-container");
+    notesContainer.style.display = "block";
+  }
+
+  function saveNotes() {
+    const notesTextarea = document.getElementById("notes-textarea");
+    const notesContainer = document.getElementById("notes-container");
+    const notesButton = document.getElementById("notes-button");
+
+    notesContainer.style.display = "none";
+    notesButton.style.display = "none";
+
+    const notesText = notesTextarea.value;
+
+    const reportContainer = document.getElementById("report-container");
+    reportContainer.innerHTML += `<h2>Note:</h2><p>${notesText}</p>`;
+  }
+    </script>
+  </div>
+</body>
+</html>
