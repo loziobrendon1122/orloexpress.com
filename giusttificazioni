@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pulsante di Giustificazioni</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-row {
+      margin-bottom: 10px;
+    }
+
+    .form-row label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-row select,
+    .form-row input[type="date"],
+    .form-row input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .submit-button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #2196f3;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .submit-button:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Pulsante di Giustificazioni</h2>
+    <div class="form-row">
+      <label for="tipo-giustificazione">Tipo di Giustificazione:</label>
+      <select id="tipo-giustificazione" onchange="showAdditionalFields()">
+        <option value="">Seleziona un tipo di giustificazione</option>
+        <option value="Ferie">Ferie</option>
+        <option value="Permesso">Permesso</option>
+        <option value="Riposo">Riposo</option>
+        <option value="Inps">Inps</option>
+        <option value="104">104</option>
+        <option value="Lutto">Lutto</option>
+        <option value="Malattia">Malattia</option>
+        <option value="Festività">Festività</option>
+      </select>
+    </div>
+    <div class="form-row" id="numero-protocollo-row" style="display: none;">
+      <label for="numero-protocollo">Numero di Protocollo:</label>
+      <input type="text" id="numero-protocollo" placeholder="Inserisci il numero di protocollo">
+    </div>
+    <div class="form-row" id="codice-fiscale-row" style="display: none;">
+      <label for="codice-fiscale">Codice Fiscale Assistito:</label>
+      <input type="text" id="codice-fiscale" placeholder="Inserisci il codice fiscale dell'assistito">
+    </div>
+    <div class="form-row" id="date-row" style="display: none;">
+      <label for="date-from">Da:</label>
+      <input type="date" id="date-from">
+      <label for="date-to">A:</label>
+      <input type="date" id="date-to">
+    </div>
+    <button class="submit-button" onclick="submitForm()">Invia</button>
+  </div>
+
+  <script>
+    function showAdditionalFields() {
+      var tipoGiustificazione = document.getElementById("tipo-giustificazione").value;
+      var numeroProtocolloRow = document.getElementById("numero-protocollo-row");
+      var codiceFiscaleRow = document.getElementById("codice-fiscale-row");
+      var dateRow = document.getElementById("date-row");
+
+      if (tipoGiustificazione === "Malattia") {
+        numeroProtocolloRow.style.display = "block";
+        codiceFiscaleRow.style.display = "none";
+      } else if (tipoGiustificazione === "104" || tipoGiustificazione === "Inps" || tipoGiustificazione === "Lutto") {
+        numeroProtocolloRow.style.display = "none";
+        codiceFiscaleRow.style.display = "block";
+      } else {
+        numeroProtocolloRow.style.display = "none";
+        codiceFiscaleRow.style.display = "none";
+      }
+
+      dateRow.style.display = "block";
+    }
+
+    function submitForm() {
+      var tipoGiustificazione = document.getElementById("tipo-giustificazione").value;
+      var numeroProtocollo = document.getElementById("numero-protocollo").value;
+      var codiceFiscale = document.getElementById("codice-fiscale").value;
+      var dateFrom = document.getElementById("date-from").value;
+      var dateTo = document.getElementById("date-to").value;
+
+      if (tipoGiustificazione && dateFrom && dateTo) {
+        var risultato = "Giustificazione, " + tipoGiustificazione + ", Da " + dateFrom + " a " + dateTo;
+
+        if (tipoGiustificazione === "Malattia") {
+          risultato += ", Numero Protocollo: " + numeroProtocollo;
+        } else if (tipoGiustificazione === "104" || tipoGiustificazione === "Inps" || tipoGiustificazione === "Lutto") {
+          risultato += ", Codice Fiscale Assistito: " + codiceFiscale;
+        }
+
+        console.log(risultato);
+        // Esegui le azioni necessarie con i valori selezionati
+      } else {
+        alert("Riempi tutti i campi prima di inviare il modulo.");
+      }
+    }
+  </script>
+</body>
+</html>
