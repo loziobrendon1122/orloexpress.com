@@ -1,137 +1,265 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pulsante di Giustificazioni</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css">
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f2f2f2;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-row {
-      margin-bottom: 10px;
-    }
-
-    .form-row label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .form-row select,
-    .form-row input[type="date"],
-    .form-row input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-
-    .submit-button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #2196f3;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .submit-button:hover {
-      background-color: #1976d2;
-    }
-  </style>
+  <title>Gestione Giustificazioni</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
   <div class="container">
-    <h2>Pulsante di Giustificazioni</h2>
-    <div class="form-row">
-      <label for="tipo-giustificazione">Tipo di Giustificazione:</label>
-      <select id="tipo-giustificazione" onchange="showAdditionalFields()">
-        <option value="">Seleziona un tipo di giustificazione</option>
-        <option value="Ferie">Ferie</option>
-        <option value="Permesso">Permesso</option>
-        <option value="Riposo">Riposo</option>
-        <option value="Inps">Inps</option>
-        <option value="104">104</option>
-        <option value="Lutto">Lutto</option>
-        <option value="Malattia">Malattia</option>
-        <option value="Festività">Festività</option>
+    <h1>Gestione Giustificazioni</h1>
+
+    <div class="form-group">
+      <label for="dipendente">Dipendente:</label>
+      <select class="form-control" id="dipendente">
+        <option value="Dipendente 1">Martinica Irina Laura</option>
+        <option value="Dipendente 2">Giuseppina Barbieri</option>
+        <option value="Dipendente 3">Carmela Maria Bucceri</option>
+        <option value="Dipendente 4">Chiara Landi</option>
+        <option value="Dipendente 5">Anna Maria Tota</option>
+        <option value="Dipendente 6">Maria L'abbate</option>
+        <option value="Dipendente 7">Germano Michele D'apolito</option>
       </select>
     </div>
-    <div class="form-row" id="numero-protocollo-row" style="display: none;">
-      <label for="numero-protocollo">Numero di Protocollo:</label>
-      <input type="text" id="numero-protocollo" placeholder="Inserisci il numero di protocollo">
+
+    <div class="form-group">
+      <label for="tipo-giustificazione">Tipo di Giustificazione:</label>
+      <select class="form-control" id="tipo-giustificazione" onchange="showAdditionalFields()">
+        <option value="">Seleziona il tipo di giustificazione</option>
+        <option value="Ferie">Ferie</option>
+        <option value="Permesso">Permesso</option>
+        <option value="Festività">Festività</option>
+        <option value="ROL">ROL</option>
+        <option value="INPS">INPS</option>
+        <option value="104">104</option>
+        <option value="Malattia">Malattia</option>
+        <option value="Lutto">Lutto</option>
+      </select>
     </div>
-    <div class="form-row" id="codice-fiscale-row" style="display: none;">
-      <label for="codice-fiscale">Codice Fiscale Assistito:</label>
-      <input type="text" id="codice-fiscale" placeholder="Inserisci il codice fiscale dell'assistito">
+
+    <div class="form-group">
+      <label for="date-from">Data di Inizio:</label>
+      <input type="date" class="form-control" id="date-from" required>
+      <div id="date-from-error" class="text-danger" style="display: none;">Inserire una data di inizio valida</div>
     </div>
-    <div class="form-row" id="date-row" style="display: none;">
-      <label for="date-from">Da:</label>
-      <input type="date" id="date-from">
-      <label for="date-to">A:</label>
-      <input type="date" id="date-to">
+
+    <div class="form-group">
+      <label for="date-to">Data di Fine:</label>
+      <input type="date" class="form-control" id="date-to" required>
+      <div id="date-to-error" class="text-danger" style="display: none;">Inserire una data di fine valida</div>
     </div>
-    <button class="submit-button" onclick="submitForm()">Invia</button>
+
+    <div class="form-group" id="protocol-number" style="display: none;">
+      <label for="protocollo">Numero di Protocollo:</label>
+      <input type="text" class="form-control" id="protocollo">
+    </div>
+
+    <div class="form-group" id="fiscal-code" style="display: none;">
+      <label for="codice-fiscale">Codice Fiscale:</label>
+      <input type="text" class="form-control" id="codice-fiscale">
+    </div>
+
+    <button type="button" class="btn btn-primary" onclick="submitForm()">Aggiungi Giustificazione</button>
+
+    <div id="giustificazioni-container"></div>
+
+    <button type="button" class="btn btn-secondary" onclick="printGiustificazioni()">Stampa</button>
   </div>
 
   <script>
-    function showAdditionalFields() {
-      var tipoGiustificazione = document.getElementById("tipo-giustificazione").value;
-      var numeroProtocolloRow = document.getElementById("numero-protocollo-row");
-      var codiceFiscaleRow = document.getElementById("codice-fiscale-row");
-      var dateRow = document.getElementById("date-row");
-
-      if (tipoGiustificazione === "Malattia") {
-        numeroProtocolloRow.style.display = "block";
-        codiceFiscaleRow.style.display = "none";
-      } else if (tipoGiustificazione === "104" || tipoGiustificazione === "Inps" || tipoGiustificazione === "Lutto") {
-        numeroProtocolloRow.style.display = "none";
-        codiceFiscaleRow.style.display = "block";
-      } else {
-        numeroProtocolloRow.style.display = "none";
-        codiceFiscaleRow.style.display = "none";
-      }
-
-      dateRow.style.display = "block";
-    }
+    var giustificazioni = [];
+    var counter = 0;
 
     function submitForm() {
+      var dipendente = document.getElementById("dipendente").value;
       var tipoGiustificazione = document.getElementById("tipo-giustificazione").value;
-      var numeroProtocollo = document.getElementById("numero-protocollo").value;
-      var codiceFiscale = document.getElementById("codice-fiscale").value;
       var dateFrom = document.getElementById("date-from").value;
       var dateTo = document.getElementById("date-to").value;
+      var protocollo = document.getElementById("protocollo").value;
+      var codiceFiscale = document.getElementById("codice-fiscale").value;
 
-      if (tipoGiustificazione && dateFrom && dateTo) {
-        var risultato = "Giustificazione, " + tipoGiustificazione + ", Da " + dateFrom + " a " + dateTo;
+      if (!validateForm()) {
+        return;
+      }
 
-        if (tipoGiustificazione === "Malattia") {
-          risultato += ", Numero Protocollo: " + numeroProtocollo;
-        } else if (tipoGiustificazione === "104" || tipoGiustificazione === "Inps" || tipoGiustificazione === "Lutto") {
-          risultato += ", Codice Fiscale Assistito: " + codiceFiscale;
-        }
+      var giustificazione = {
+        id: generateID(),
+        dipendente: dipendente,
+        tipoGiustificazione: tipoGiustificazione,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        protocollo: protocollo,
+        codiceFiscale: codiceFiscale
+      };
 
-        console.log(risultato);
-        // Esegui le azioni necessarie con i valori selezionati
+      giustificazioni.push(giustificazione);
+      createGiustificazioneCard(giustificazione);
+
+      resetForm();
+    }
+
+    function createGiustificazioneCard(giustificazione) {
+      var container = document.getElementById("giustificazioni-container");
+
+      var giustificazioneCard = document.createElement("div");
+      giustificazioneCard.className = "card";
+
+      var cardBody = document.createElement("div");
+      cardBody.className = "card-body";
+
+      var idElement = document.createElement("h5");
+      idElement.className = "card-title";
+      idElement.textContent = "ID: " + giustificazione.id;
+
+      var dipendenteElement = document.createElement("p");
+      dipendenteElement.className = "card-text";
+      dipendenteElement.textContent = "Dipendente: " + giustificazione.dipendente;
+
+      var tipoGiustificazioneElement = document.createElement("p");
+      tipoGiustificazioneElement.className = "card-text";
+      tipoGiustificazioneElement.textContent = "Tipo di Giustificazione: " + giustificazione.tipoGiustificazione;
+
+      var dateFromElement = document.createElement("p");
+      dateFromElement.className = "card-text";
+      dateFromElement.textContent = "Data di Inizio: " + giustificazione.dateFrom;
+
+      var dateToElement = document.createElement("p");
+      dateToElement.className = "card-text";
+      dateToElement.textContent = "Data di Fine: " + giustificazione.dateTo;
+
+      if (giustificazione.protocollo) {
+        var protocolloElement = document.createElement("p");
+        protocolloElement.className = "card-text";
+        protocolloElement.textContent = "Numero di Protocollo: " + giustificazione.protocollo;
+        cardBody.appendChild(protocolloElement);
+      }
+
+      if (giustificazione.codiceFiscale) {
+        var codiceFiscaleElement = document.createElement("p");
+        codiceFiscaleElement.className = "card-text";
+        codiceFiscaleElement.textContent = "Codice Fiscale: " + giustificazione.codiceFiscale;
+        cardBody.appendChild(codiceFiscaleElement);
+      }
+
+      cardBody.appendChild(idElement);
+      cardBody.appendChild(dipendenteElement);
+      cardBody.appendChild(tipoGiustificazioneElement);
+      cardBody.appendChild(dateFromElement);
+      cardBody.appendChild(dateToElement);
+
+      giustificazioneCard.appendChild(cardBody);
+      container.appendChild(giustificazioneCard);
+    }
+
+    function resetForm() {
+      document.getElementById("dipendente").value = "";
+      document.getElementById("tipo-giustificazione").value = "";
+      document.getElementById("date-from").value = "";
+      document.getElementById("date-to").value = "";
+      document.getElementById("protocollo").value = "";
+      document.getElementById("codice-fiscale").value = "";
+
+      document.getElementById("protocol-number").style.display = "none";
+      document.getElementById("fiscal-code").style.display = "none";
+    }
+
+    function generateID() {
+      return Math.floor(1000 + Math.random() * 9000);
+    }
+
+    function showAdditionalFields() {
+      var tipoGiustificazione = document.getElementById("tipo-giustificazione").value;
+
+      if (tipoGiustificazione === "Malattia") {
+        document.getElementById("protocol-number").style.display = "block";
       } else {
-        alert("Riempi tutti i campi prima di inviare il modulo.");
+        document.getElementById("protocol-number").style.display = "none";
+      }
+
+      if (tipoGiustificazione === "INPS" || tipoGiustificazione === "104" || tipoGiustificazione === "Lutto") {
+        document.getElementById("fiscal-code").style.display = "block";
+      } else {
+        document.getElementById("fiscal-code").style.display = "none";
       }
     }
+
+    function printGiustificazioni() {
+      var printContent = "";
+      for (var i = 0; i < giustificazioni.length; i++) {
+        var giustificazione = giustificazioni[i];
+        printContent += "ID: " + giustificazione.id + "<br>";
+        printContent += "Dipendente: " + giustificazione.dipendente + "<br>";
+        printContent += "Tipo di Giustificazione: " + giustificazione.tipoGiustificazione + "<br>";
+        printContent += "Data di Inizio: " + giustificazione.dateFrom + "<br>";
+        printContent += "Data di Fine: " + giustificazione.dateTo + "<br>";
+        if (giustificazione.protocollo) {
+          printContent += "Numero di Protocollo: " + giustificazione.protocollo + "<br>";
+        }
+        if (giustificazione.codiceFiscale) {
+          printContent += "Codice Fiscale: " + giustificazione.codiceFiscale + "<br>";
+        }
+        printContent += "<br>";
+      }
+
+      var printWindow = window.open("", "Print", "height=600,width=800");
+      printWindow.document.write("<html><head><title>Gestione Giustificazioni - Stampa</title></head><body>");
+      printWindow.document.write("<h1>Gestione Giustificazioni - Stampa</h1>");
+      printWindow.document.write(printContent);
+      printWindow.document.write("</body></html>");
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    function validateForm() {
+  var tipoGiustificazione = document.getElementById("tipo-giustificazione").value;
+  var dateFrom = document.getElementById("date-from").value;
+  var dateTo = document.getElementById("date-to").value;
+  var protocollo = document.getElementById("protocollo").value;
+  var codiceFiscale = document.getElementById("codice-fiscale").value;
+
+  if (!tipoGiustificazione) {
+    alert("Seleziona il tipo di giustificazione");
+    return false;
+  }
+
+  if (!dateFrom) {
+    alert("Inserisci la data di inizio");
+    return false;
+  }
+
+  if (!dateTo) {
+    alert("Inserisci la data di fine");
+    return false;
+  }
+
+  if (tipoGiustificazione === "Malattia" && !protocollo) {
+    alert("Inserisci il numero di protocollo");
+    return false;
+  }
+
+  if ((tipoGiustificazione === "INPS" || tipoGiustificazione === "104" || tipoGiustificazione === "Lutto") && !codiceFiscale) {
+    alert("Inserisci il codice fiscale");
+    return false;
+  }
+
+  if (!isValidCodiceFiscale(codiceFiscale)) {
+    alert("Il codice fiscale non è valido");
+    return false;
+  }
+
+  if (new Date(dateFrom) > new Date(dateTo)) {
+    alert("La data di inizio deve essere precedente o uguale alla data di fine");
+    return false;
+  }
+
+  return true;
+}
+
+function isValidCodiceFiscale(codiceFiscale) {
+  var regex = /^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/;
+  return regex.test(codiceFiscale);
+
+}
   </script>
 </body>
 </html>
+
